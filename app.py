@@ -3,6 +3,14 @@ from PIL import Image
 import requests
 import base64
 import io
+import json
+from io import BytesIO
+
+# Function to download image from URL
+def download_image(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img
 
 # Lambda API endpoint
 API_ENDPOINT = "https://o6kuyvrcx5.execute-api.ap-south-1.amazonaws.com/initial/"
@@ -36,7 +44,13 @@ if uploaded_file is not None:
     # Display response from Lambda API
     if response.status_code == 200:
         result = response.json()
+        result = json.loads(result["body"])
+        img = download_image(result["Plotted Image URL"])
         st.write("Response from Lambda API:")
-        st.write(result)
+        st.image(img, caption="Downloaded Image", use_column_width=True)
+        # Button to show image URL
+        if st.button("Show Image URL"):
+            st.write("Image URL:", result["Plotted Image URL"])
+
     else:
         st.error("Error: Failed to process the image. Please try again.")
